@@ -6,14 +6,23 @@ class CompanyspiderSpider(scrapy.Spider):
     name = "companyspider"
     base_url = "https://www.ambitionbox.com"
     allowed_domains = ["www.ambitionbox.com"]
-    start_urls = ["https://www.ambitionbox.com/list-of-companies?locations=kolkata&tags=startup&ratings=4.0&sortBy=popular&page=1"]
+    start_urls = ["https://www.ambitionbox.com/list-of-companies?knownFor=skill-development-learning&ratings=4.5&locations=new-delhi,mumbai,bengaluru,hyderabad,pune,chennai,kolkata,gurgaon,noida,ahmedabad&industries=software-product&sortBy=popular"]
     stop_req = 1
     
     def parse_company_details(self, response):
+        item = CompanyItem()
         company_name = response.css('h1.newHInfo__cNtxt ::text').get()
         fields = response.css('a.aboutItem__link')
-        item = CompanyItem()
+        links = response.css('a.socialMedia__link')
+        for link in links:
+            social = link.css('a.socialMedia__link ::attr(href)').get()
+            if 'linkedin' in social:
+                item['company_linkedin'] = social
+                break
         item['company_name'] = company_name.lstrip().rstrip()
+        item['company_person_name'] = response.xpath('//*[@id="About"]/div[1]/ul/li[7]/p[2]/text()').get()
+        item['source_name'] = 'Soham Malakar'
+    
         for field in fields:
             value = field.css('a.aboutItem__link ::text').get()
             if value is not None and '@' in value:
@@ -38,15 +47,14 @@ class CompanyspiderSpider(scrapy.Spider):
                 yield response.follow(f"{self.base_url}{overview}", callback=self.parse_company_details)
             # name = ((company.css('h2.companyCardWrapper__companyName ::text').get()).lstrip()).rstrip()
             # print(name)
-    
         
-        next_page = response.css('a.page-nav-btn.router-link-active')
+        next_page = response.css('a.page-nav-btn')
         
         if len(next_page)>1: 
             next_page = next_page[1]
             
-        next_page = next_page.css('a.page-nav-btn.router-link-active ::attr(href)').get()
-        
+        next_page = next_page.css('a.page-nav-btn ::attr(href)').get()
+        print(next_page)
         if next_page is not None:
             page_no = next_page[next_page.find('page='):]
             p = int(page_no[page_no.find('=')+1:])
@@ -54,6 +62,6 @@ class CompanyspiderSpider(scrapy.Spider):
                 return
             else:
                 self.stop_req = p
-            next_page_url = f"{self.base_url}/list-of-companies?locations=kolkata&tags=startup&ratings=4.0&sortBy=popular&{page_no}"
-            # print(next_page_url)
+            next_page_url = f"{self.base_url}/list-of-companies?knownFor=skill-development-learning&ratings=4.5&locations=new-delhi,mumbai,bengaluru,hyderabad,pune,chennai,kolkata,gurgaon,noida,ahmedabad&industries=software-product&sortBy=popular&{page_no}"
+            print(next_page_url)
             yield response.follow(next_page_url, callback=self.parse)

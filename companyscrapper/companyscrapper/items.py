@@ -16,3 +16,6 @@ class CompanyItem(scrapy.Item):
     company_website = scrapy.Field()
     company_email = scrapy.Field()
     company_contact = scrapy.Field()
+    source_name = scrapy.Field()
+    company_person_name = scrapy.Field()
+    company_linkedin = scrapy.Field()

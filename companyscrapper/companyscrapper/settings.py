@@ -12,7 +12,7 @@ BOT_NAME = "companyscrapper"
 SPIDER_MODULES = ["companyscrapper.spiders"]
 NEWSPIDER_MODULE = "companyscrapper.spiders"
 FEEDS = {
-   'companies_gdsc.csv': {'format': 'csv', 'overwrite': True}
+   'companies_gdsc_final.csv': {'format': 'csv', 'overwrite': True}
 }
 
 
